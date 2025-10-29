@@ -77,7 +77,7 @@ class PingPlotter:
         }
 
     def plot_ascii(self, height: int = 20, width: int = 80) -> str:
-        """Generate ASCII graph of latency over time."""
+        """Generate ASCII graph of latency over time using extended ASCII line drawing."""
         if not self.results:
             return "No ping results to plot"
 
@@ -86,31 +86,83 @@ class PingPlotter:
         max_lat = max(latencies)
         range_lat = max_lat - min_lat if max_lat > min_lat else 1
 
-        # Normalize latencies to height
+        # Normalize latencies to sub-pixel precision (4 levels per character height)
+        # This allows for smoother line drawing
         normalized = [
-            int((lat - min_lat) / range_lat * (height - 1))
+            (lat - min_lat) / range_lat * (height - 1) * 4
             for lat in latencies
         ]
 
-        # Create graph
+        # Sample data if too many results
+        step = max(1, len(normalized) // width)
+        sampled = normalized[::step][:width]
+
+        # Create graph with extended ASCII line drawing characters
         graph = [[' ' for _ in range(width)] for _ in range(height)]
 
-        # Plot points (sample if too many results)
-        step = max(1, len(normalized) // width)
-        for i, norm_lat in enumerate(normalized[::step]):
-            x = min(i, width - 1)
-            y = height - 1 - norm_lat
-            graph[y][x] = '█'
+        # Extended ASCII box drawing characters for smooth lines
+        # ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ for vertical fills
+        vertical_chars = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
 
-        # Convert to string
-        lines = [''.join(row) for row in graph]
-        
-        # Add axis labels
+        # Plot line with smooth transitions
+        for x, norm_lat in enumerate(sampled):
+            if x >= width:
+                break
+
+            # Get the row and sub-pixel position
+            row_float = height - 1 - norm_lat / 4
+            row = int(row_float)
+            sub_pixel = int((row_float - row) * 8)
+
+            # Clamp to valid range
+            if row < 0:
+                row = 0
+                sub_pixel = 7
+            elif row >= height:
+                row = height - 1
+                sub_pixel = 0
+
+            # Place character at the appropriate position
+            if row >= 0 and row < height:
+                # Use the vertical character that represents the sub-pixel position
+                char_idx = max(0, min(7, 7 - sub_pixel))
+                graph[row][x] = vertical_chars[char_idx]
+
+                # Fill below the line
+                for fill_row in range(row + 1, height):
+                    graph[fill_row][x] = '█'
+
+        # Add border and axis
+        output_lines = []
+
+        # Top border
+        output_lines.append('┌' + '─' * width + '┐')
+
+        # Graph with left axis
+        for row_idx, row in enumerate(graph):
+            # Add Y-axis label on the left
+            if row_idx == 0:
+                y_label = f"{max_lat:.1f}ms"
+            elif row_idx == height - 1:
+                y_label = f"{min_lat:.1f}ms"
+            else:
+                y_label = "       "
+
+            y_label = y_label.rjust(7)
+            output_lines.append(y_label + '│' + ''.join(row) + '│')
+
+        # Bottom border
+        output_lines.append('└' + '─' * width + '┘')
+
+        # Add statistics header
         stats = self.get_stats()
-        header = f"Latency Graph (min: {stats['min']:.2f}ms, max: {stats['max']:.2f}ms, avg: {stats['avg']:.2f}ms)"
-        footer = f"Time →"
-        
-        return header + '\n' + '\n'.join(lines) + '\n' + footer
+        header = f"Latency Graph (min: {stats['min']:.2f}ms, max: {stats['max']:.2f}ms, avg: {stats['avg']:.2f}ms, lost: {stats['lost']})"
+
+        # Add footer with time axis
+        footer = ' ' * 7 + '└' + '─' * (width - 2) + '┘'
+        footer_label = ' ' * 7 + ' ' * (width // 2 - 2) + 'Time →'
+
+        return header + '\n' + '\n'.join(output_lines) + '\n' + footer + '\n' + footer_label
 
     def to_json(self) -> str:
         """Export results as JSON."""
