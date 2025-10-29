@@ -165,11 +165,10 @@ class PingPlotter:
         stats = self.get_stats()
         header = f"Latency Graph (min: {stats['min']:.2f}ms, max: {stats['max']:.2f}ms, avg: {stats['avg']:.2f}ms, lost: {stats['lost']})"
 
-        # Add footer with time axis
-        footer = top_padding + '└' + '─' * width + '┘'
+        # Add footer with time axis label
         footer_label = top_padding + ' ' * (width // 2 - 2) + 'Time →'
 
-        return header + '\n' + '\n'.join(output_lines) + '\n' + footer + '\n' + footer_label
+        return header + '\n' + '\n'.join(output_lines) + '\n' + footer_label
 
     def to_json(self) -> str:
         """Export results as JSON."""
