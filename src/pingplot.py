@@ -135,32 +135,39 @@ class PingPlotter:
         # Add border and axis
         output_lines = []
 
+        # Calculate Y-axis label width (e.g., "7.59ms" = 6 chars)
+        max_label = f"{max_lat:.2f}ms"
+        min_label = f"{min_lat:.2f}ms"
+        y_axis_width = max(len(max_label), len(min_label))
+
         # Top border
-        output_lines.append('┌' + '─' * width + '┐')
+        top_padding = ' ' * y_axis_width
+        output_lines.append(top_padding + '┌' + '─' * width + '┐')
 
         # Graph with left axis
         for row_idx, row in enumerate(graph):
             # Add Y-axis label on the left
             if row_idx == 0:
-                y_label = f"{max_lat:.1f}ms"
+                y_label = f"{max_lat:.2f}ms"
             elif row_idx == height - 1:
-                y_label = f"{min_lat:.1f}ms"
+                y_label = f"{min_lat:.2f}ms"
             else:
-                y_label = "       "
+                y_label = ""
 
-            y_label = y_label.rjust(7)
+            # Right-align the label to the specified width
+            y_label = y_label.rjust(y_axis_width)
             output_lines.append(y_label + '│' + ''.join(row) + '│')
 
         # Bottom border
-        output_lines.append('└' + '─' * width + '┘')
+        output_lines.append(top_padding + '└' + '─' * width + '┘')
 
         # Add statistics header
         stats = self.get_stats()
         header = f"Latency Graph (min: {stats['min']:.2f}ms, max: {stats['max']:.2f}ms, avg: {stats['avg']:.2f}ms, lost: {stats['lost']})"
 
         # Add footer with time axis
-        footer = ' ' * 7 + '└' + '─' * (width - 2) + '┘'
-        footer_label = ' ' * 7 + ' ' * (width // 2 - 2) + 'Time →'
+        footer = top_padding + '└' + '─' * width + '┘'
+        footer_label = top_padding + ' ' * (width // 2 - 2) + 'Time →'
 
         return header + '\n' + '\n'.join(output_lines) + '\n' + footer + '\n' + footer_label
 
