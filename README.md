@@ -4,10 +4,11 @@ Visualize ping latency as a graph with CLI-compatible output.
 
 ## Features
 
-- **ASCII Graph**: Display latency over time in the terminal
-- **Multiple Output Formats**: ASCII, JSON, and CSV
+- **ASCII Graph**: Display latency over time in the terminal with extended ASCII line drawing
+- **Image Output**: Generate professional PNG graphs with matplotlib
+- **Multiple Output Formats**: ASCII, JSON, CSV, and PNG image
 - **Statistics**: Min, max, average latency, and packet loss
-- **Customizable**: Control ping parameters and graph dimensions
+- **Customizable**: Control ping parameters, graph dimensions, and figure size
 
 ## Installation
 
@@ -78,20 +79,37 @@ chmod +x pingplot.py
 
 ## Example Output
 
+### ASCII Graph Output
+
 ```
-Latency Graph (min: 1.23ms, max: 5.67ms, avg: 2.45ms)
-█
-█ █
-█ █ █
-█ █ █ █
-█ █ █ █ █
-█ █ █ █ █ █
-█ █ █ █ █ █ █
-█ █ █ █ █ █ █ █
-█ █ █ █ █ █ █ █ █
-█ █ █ █ █ █ █ █ █ █
-Time →
+Latency Graph (min: 16.80ms, max: 25.50ms, avg: 19.69ms, lost: 0)
+       ┌────────────────────────────────────────────────────────────────────────────────┐
+25.50ms│             █                                                                  │
+       │             █▇                                                                 │
+       │      ▃      ██                                                                 │
+       │      █      ██                                                                 │
+       │      █      ██     ▇                                                           │
+       │      █      ██     █         ▅ ▆            ▁                                  │
+       │▄     ██     ██     █         █ █       ▆    █                                  │
+       │█▅    ██     ██     █        ▄█ █       █    █                                  │
+       │██    ██     ██ ▃   █        ██▂█  ▆  ▇ █    █                                  │
+       │██▇   ██  ▁  ██ █   █   ▅  █ ████▇ █▁▃█ █▅   █                                  │
+       │███▁  ██▄ █  ██ █  ▄█ ▄▄█ ▅█ █████ ████▄██  ▅█▆▄                                │
+       │████▅▅███ █▆▃██▅█▁ ██ ███ ██▄█████▄███████  █████                               │
+       │█████████▄████████ ██▅███ █████████████████▃██████                              │
+       │██████████████████ ██████▇████████████████████████                              │
+16.80ms│██████████████████████████████████████████████████                              │
+       └────────────────────────────────────────────────────────────────────────────────┘
+                                             Time →
 ```
+
+### Image Output (PNG)
+
+```bash
+./pingplot.py 192.168.88.101 --format image
+```
+
+![Sample PNG Output](sample_output.png)
 
 ## Requirements
 
